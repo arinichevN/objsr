@@ -3,8 +3,8 @@
 
 #include "../../lib/app.h"
 #include "../../lib/timef.h"
-#include "../SensorParam/main.h"
 #include "../interfaces/iSense.h"
+#include "param.h"
 
 typedef struct sensor_st Sensor;
 

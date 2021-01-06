@@ -5,10 +5,10 @@
 #include "../../lib/dstructure.h"
 #include "../../lib/app.h"
 #include "../../lib/controller.h"
-#include "../ChannelParam/main.h"
 #include "../Matter/main.h"
 #include "../EM/main.h"
 #include "../Sensor/main.h"
+#include "param.h"
 
 typedef struct channel_st Channel;
 struct channel_st {

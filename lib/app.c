@@ -152,15 +152,6 @@ void mutex_free ( Mutex *m ) {
 
 }
 
-int mutex_lock ( Mutex *item ) {
-    if ( pthread_mutex_lock ( &item->self ) != 0 ) {
-        fprintf ( stderr, "%s(): ", __func__ );
-        perror ( "pthread_mutex_lock()" );
-        return 0;
-    }
-    return 1;
-}
-
 int mutex_tryLock ( Mutex *item ) {
     if ( pthread_mutex_trylock ( &item->self ) != 0 ) {
         return 0;
@@ -168,14 +159,26 @@ int mutex_tryLock ( Mutex *item ) {
     return 1;
 }
 
-int mutex_unlock ( Mutex *item ) {
-    if ( pthread_mutex_unlock ( &item->self ) != 0 ) {
-        fprintf ( stderr, "%s(): ", __func__ );
-        perror ( "pthread_mutex_unlock()" );
-        return 0;
-    }
-    return 1;
-}
+//int mutex_lock ( Mutex *item ) {
+    //if ( pthread_mutex_lock ( &item->self ) != 0 ) {
+        //fprintf ( stderr, "%s(): ", __func__ );
+        //perror ( "pthread_mutex_lock()" );
+        //return 0;
+    //}
+    //return 1;
+//}
+
+//int mutex_unlock ( Mutex *item ) {
+    //if ( pthread_mutex_unlock ( &item->self ) != 0 ) {
+        //fprintf ( stderr, "%s(): ", __func__ );
+        //perror ( "pthread_mutex_unlock()" );
+        //return 0;
+    //}
+    //return 1;
+//}
+
+#define mutex_lock(M) {if (pthread_mutex_lock ( &(M)->self ) != 0 ) putsde("mutex_lock failed\n");}
+#define mutex_unlock(M) {if (pthread_mutex_unlock(&(M)->self) != 0) putsde("mutex_unlock failed\n");}
 
 void skipLine ( FILE* stream ) {
     int x;
@@ -188,12 +191,28 @@ void skipLine ( FILE* stream ) {
 }
 
 int thread_create ( Thread *new_thread, void * ( *thread_routine ) ( void * ), void * data ) {
-    if ( pthread_create ( (pthread_t *) new_thread, NULL, thread_routine, data ) != 0 ) {
-        fprintf ( stderr, "%s(): ", __func__ );
-        perror ( "pthread_create()" );
-        return 0;
-    }
-    return 1;
+	if ( pthread_create ( (pthread_t *) new_thread, NULL, thread_routine, data ) != 0 ) {
+		fprintf ( stderr, "%s(): ", __func__ );
+		perror ( "pthread_create()" );
+		return 0;
+	}
+	return 1;
+}
+
+void thread_cancelEnable(){
+	int r = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, NULL);
+	if (r != 0) {
+		fprintf ( stderr, "%s(): ", __func__ );
+		perror ( "pthread_setcancelstate()" );
+	}
+}
+
+void thread_cancelDisable(){
+	int r = pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, NULL);
+	if (r != 0) {
+		fprintf ( stderr, "%s(): ", __func__ );
+		perror ( "pthread_setcancelstate()" );
+	}
 }
 
 int threadCancelDisable ( int *old_state ) {

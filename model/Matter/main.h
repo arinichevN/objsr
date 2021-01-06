@@ -5,8 +5,8 @@
 #include "../../lib/debug.h"
 #include "../../lib/dstructure.h"
 #include "../../lib/timef.h"
-#include "../MatterParam/main.h"
 #include "../interfaces/iSense.h"
+#include "param.h"
 
 DEC_PIPE(double, DPipe)
 

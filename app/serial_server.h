@@ -5,11 +5,10 @@
 #include "../lib/app.h"
 #include "../lib/controller.h"
 #include "../lib/dbl.h"
-#include "../lib/acp/serial/server/main.h"
+#include "../lib/ACP/serial/server/ACPSS.h"
+#include "common.h"
 
-#define SS_DEVICE_DIR "/dev"
-
-extern ACPLS *serial_server;
+extern ACPSS *serial_server;
 
 extern int serialServer_begin(const char *db_path);
 

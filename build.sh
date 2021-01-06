@@ -46,69 +46,85 @@ function conf_autostart {
 	echo "Autostart configured";
 }
 #clear && clear &&  gcc -DMODE_DEBUG -c main.c -D_REENTRANT -Wall -pedantic -g
-function build_lib {
-	cd lib
-	gcc $1 $3 -c app.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
-	gcc $1 $3 -c util.c -D_REENTRANT $DEBUG_PARAM  && \
-	gcc $1 $3 -c timef.c -D_REENTRANT $DEBUG_PARAM  && \
-	gcc $1 $3 -c serial.c -D_REENTRANT $DEBUG_PARAM  && \
-	gcc $1 $3 -c dbl.c -D_REENTRANT $DEBUG_PARAM  && \
-	cd acp && \
-	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM  && \
-	cd serial && \
-	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM  && \
-	cd server && \
-	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM  && \
-	cd PortController && \
-	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
-	cd Param
-	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM  && \
-	cd ../../../../../ && \
 
-	#echo "library: making archive..." && \
-	#rm -f libpac.a
-	ar -crv libpac.a app.o util.o timef.o serial.o dbl.o acp/main.o  acp/serial/main.o acp/serial/server/main.o acp/serial/server/PortController/main.o acp/serial/server/PortController/Param/main.o
-	cd ../ 
+function build_lib {
+	cd lib  && \
+	local da=(app util timef serial dbl)
+	for d in "${da[@]}"
+	do
+		gcc $1 $3 -c ${d}.c -D_REENTRANT $DEBUG_PARAM -lpthread
+	done
+	cd ../ && \
+	for d in "${da[@]}"
+	do
+		ar -crvs libpac.a lib/${d}.o 
+	done
+}
+
+function build_acp {
+	cd lib/ACP && \
+	gcc $1 $3 -c ACP.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd serial && \
+	gcc $1 $3 -c ACPSerial.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c ACPSerialPortParam.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd ../TCP && \
+	gcc $1 $3 -c ACPTCP.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd ../../../ && \
+	ar -crvs libpac.a lib/ACP/ACP.o lib/ACP/serial/ACPSerial.o lib/ACP/serial/ACPSerialPortParam.o lib/ACP/TCP/ACPTCP.o
+}
+
+function build_acp_serial_server {
+	cd lib/ACP/serial/server
+	local da=(ACPSS ACPSSPort)
+	for d in "${da[@]}"
+	do
+		gcc $1 $3 -c ${d}.c -D_REENTRANT $DEBUG_PARAM -lpthread
+	done
+	cd ../../../../ && \
+	for d in "${da[@]}"
+	do
+		ar -crvs libpac.a lib/ACP/serial/server/${d}.o 
+	done
 }
 
 function build_sqlite {
 	if [ ! -f sqlite3.o ]; then
-    gcc $1 $3 -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION  -c sqlite3.c -D_REENTRANT $DEBUG_PARAM -lpthread
-    fi
+	gcc $1 $3 -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION  -c sqlite3.c -D_REENTRANT $DEBUG_PARAM -lpthread
+	fi
+	ar -crvs libpac.a sqlite3.o
 }
 
 function build_model {
-	local da=(Channel ChannelParam EM EMParam Matter MatterParam Sensor SensorParam)
-	cd model
-	
-	for d in "${da[@]}"
-	do
-		#printf "_________________${d}\n" 
-		cd ${d} 
-		gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread
-		cd ../
-	done
-	
-	for d in "${da[@]}"
-	do
-		ar -crv libmodel.a ${d}/main.o 
-	done
-	
+	cd model  && \
+	cd EM  && \
+	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c param.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd ../  && \
+	cd Matter  && \
+	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c param.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd ../  && \
+	cd Sensor  && \
+	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c param.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd ../  && \
 	cd Channel
-	gcc $1 $3 -c app.c -D_REENTRANT $DEBUG_PARAM -lpthread
-	gcc $1 $3 -c list.c -D_REENTRANT $DEBUG_PARAM -lpthread
-	cd ../
-	ar -crv libmodel.a Channel/app.o Channel/list.o 
-	cd ../ 
+	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c llistm.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c param.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	cd ../  && \
+	cd ../  && \
+	ar -crvs libpac.a model/Channel/main.o model/Channel/main.o model/Channel/llistm.o  model/Channel/param.o model/EM/main.o model/EM/param.o model/Matter/main.o model/Matter/param.o model/Sensor/main.o model/Sensor/param.o 
 }
 
+
 function build_app {
-	cd app
-	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM  && \
-	gcc $1 $3 -c serial_server.c -D_REENTRANT $DEBUG_PARAM  && \
-	#rm -f libapp.a
-	ar -crv libapp.a main.o serial_server.o
-	cd ../ 
+	cd app  && \
+	gcc $1 $3 -c serial_server.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c channels.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
+	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
+	cd ../   && \
+	ar -crvs libpac.a app/channels.o app/serial_server.o app/main.o
 }
 
 #1				2
@@ -116,16 +132,13 @@ function build_app {
 function build {
 	#find . -maxdepth 16 -name '*.o' -type f -delete
 	build_lib $1 $2 $3 && \
+	build_acp $1 $2 $3 && \
+	build_acp_serial_server $1 $2 $3 && \
 	build_sqlite $1 $2 $3 && \
 	build_model $1 $2 $3 && \
 	build_app $1 $2 $3 && \
-	#gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3  main.c -o $2 $DEBUG_PARAM -lpthread -L./lib -L./model -L./app  -lpac -lmodel -lapp
-	gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3  main.c -o $2 $DEBUG_PARAM  \
-	sqlite3.o \
-	app/main.o app/serial_server.o model/EM/main.o model/EMParam/main.o model/Matter/main.o model/MatterParam/main.o model/Sensor/main.o model/SensorParam/main.o  \
-	model/Channel/main.o model/Channel/list.o model/Channel/app.o model/ChannelParam/main.o \
-	-L./lib -lpthread -lm -lpac&& \
-	echo "Application successfully compiled. Launch command: ./"$2
+	gcc -D_REENTRANT -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION $1 $3 main.c -o $2 $DEBUG_PARAM -L./ -lpac -lm -lpthread && \
+	echo "Application" $2 "has been successfully compiled."
 }
 
 function part_debug {

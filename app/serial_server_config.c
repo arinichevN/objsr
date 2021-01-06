@@ -1,11 +1,11 @@
 #include "main.h"
-#include "../lib/acp/command/main.h"
-#include "../model/Channel/app.h"
+#include "../lib/ACP/command/main.h"
+#include "channels.h"
 
 extern ChannelLListm channels;
 
-ACPLSCommandNode *srvc_getServerCommandNext(int prev_command);
-ACPLSCommandNode *srvc_getServerCommand(int command);
+ACPSSCommandNode *srvc_getServerCommandNext(int prev_command);
+ACPSSCommandNode *srvc_getServerCommand(int command);
 int srvc_getServerCommandCount();
 
 Channel *srvc_getChannel(char *buf){
@@ -287,7 +287,7 @@ int acnf_getAppAcpCommandExists(char *buf){
 	if(!acp_packGetCellI(buf, ACP_REQUEST_IND_PARAM1, &command)){
 		goto done;
 	}
-	{ACPLSCommandNode *node = srvc_getServerCommand(command);
+	{ACPSSCommandNode *node = srvc_getServerCommand(command);
 	if(node != NULL) {
 		success = 1;
 	}}
@@ -305,7 +305,7 @@ int acnf_getAppServerCommandCount(char *buf){
 
 int acnf_getAppServerCommandFirst(char *buf){
 	if(!srvc_forThisApp(buf)) return ACP_NOT_FOUND;
-	extern ACPLSCommandNode acnodes[];
+	extern ACPSSCommandNode acnodes[];
 	int first_command = acnodes[0].command;
 	if(acpserial_buildPackII(buf, ACP_BUF_MAX_LENGTH, ACP_SIGN_RESPONSE,	 APP_ID, first_command)) return ACP_SENDING_REQUIRED; 
 	return ACP_ERROR;
@@ -319,7 +319,7 @@ int acnf_getAppServerCommandNext(char *buf){
 	if(!acp_packGetCellI(buf, ACP_REQUEST_IND_PARAM1, &prev_command)){
 		goto done;
 	}
-	{ACPLSCommandNode *node = srvc_getServerCommandNext(prev_command);
+	{ACPSSCommandNode *node = srvc_getServerCommandNext(prev_command);
 	if(node != NULL){
 		success = 1;
 		next_command = node->command;
@@ -345,7 +345,7 @@ int acnf_appReset(char *buf){
 }
 
 
-ACPLSCommandNode acnodes[] = {
+ACPSSCommandNode acnodes[] = {
 	
 	{CMD_GETR_CHANNEL_FTS,						acnf_getFTS},
 	{CMD_SET_CHANNEL_GOAL,						acnf_setGoal},
@@ -374,7 +374,7 @@ int srvc_getServerCommandCount(){
 	return ACPL_CNODE_COUNT;
 }
 
-ACPLSCommandNode *srvc_getServerCommandNext(int prev_command){
+ACPSSCommandNode *srvc_getServerCommandNext(int prev_command){
 	int found = 0;
 	for(size_t i = 0; i<ACPL_CNODE_COUNT; i++){
 		if(found) return &acnodes[i];
@@ -386,7 +386,7 @@ ACPLSCommandNode *srvc_getServerCommandNext(int prev_command){
 	return NULL;
 }
 
-ACPLSCommandNode *srvc_getServerCommand(int command){
+ACPSSCommandNode *srvc_getServerCommand(int command){
 	for(size_t i = 0; i<ACPL_CNODE_COUNT; i++){
 		if(acnodes[i].command == command){
 			return &acnodes[i];

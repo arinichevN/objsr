@@ -3,7 +3,7 @@
 
 #include "../../lib/app.h"
 #include "../../lib/timef.h"
-#include "../EMParam/main.h"
+#include "param.h"
 
 typedef struct em_st EM;
 

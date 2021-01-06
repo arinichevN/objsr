@@ -1,6 +1,6 @@
 #include "main.h"
 
-void channel_RUN(Channel * self) {
+static void step_RUN(Channel * self) {
 #ifdef MODE_DEBUG
 	//printf("channel: id:%d amtemp:%.2f mass:%.2f ksh:%.2f kl:%.2f pl:%.2f \n",
 			//self->sensor.id,
@@ -28,7 +28,7 @@ void channel_RUN(Channel * self) {
 	mutex_unlock(&self->mutex);
 }
 
-void channel_OFF(Channel * self) {
+static void step_OFF(Channel * self) {
 	;
 }
 
@@ -37,14 +37,14 @@ void channel_start(Channel * self) {
 	em_start(&self->heater);
 	em_start(&self->cooler);
 	matter_start(&self->matter, self->ambient_temperature);
-	self->control = channel_RUN;
+	self->control = step_RUN;
 }
 
 void channel_stop(Channel * self) {
 	sensor_stop(&self->sensor);
 	em_stop(&self->heater);
 	em_stop(&self->cooler);
-	self->control = channel_OFF;
+	self->control = step_OFF;
 }
 
 void channel_setParam(Channel *self, const ChannelParam *param){
@@ -57,17 +57,17 @@ void channel_setParam(Channel *self, const ChannelParam *param){
 }
 
 #ifdef MODE_DEBUG
-void channel_cleanup_handler(void *arg) {
+static void cleanup_handler(void *arg) {
 	Channel *self = arg;
 	printf("cleaning up sensor_id %d\n", self->sensor.id);
 }
 #endif
 
-void *channel_main (void *arg) {
+static void *thread_main (void *arg) {
 	Channel *self = arg;
 	printdo("channel with serial_id=%d has been started\n", self->sensor.id);
 #ifdef MODE_DEBUG
-    pthread_cleanup_push(channel_cleanup_handler, self);
+    pthread_cleanup_push(cleanup_handler, self);
 #endif
 	while(1) {
 		struct timespec t1 = getCurrentTime();
@@ -94,12 +94,12 @@ int channel_begin(Channel *self){
 	matter_begin(&self->matter);
 	sensor_setSlave (&self->sensor, &self->matter.im_temperature);
 	self->next = NULL;
-	self->control = channel_OFF;
+	self->control = step_OFF;
 	if(!mutex_init(&self->mutex)) {
 		free(self);
 		return 0;
 	}
-	if(!thread_create(&self->thread, channel_main, self)) {
+	if(!thread_create(&self->thread, thread_main, self)) {
 		mutex_free(&self->mutex);
 		free(self);
 		return 0;
@@ -109,12 +109,12 @@ int channel_begin(Channel *self){
 }
 
 void channel_free(Channel *self){
-	printdo("channel ramp-down (sensor_id = %d):\n", self->sensor.id);
+	mutex_lock(&self->mutex);
 	STOP_THREAD(self->thread)
-	mutex_free(&self->mutex);
 	matter_free(&self->matter);
+	mutex_unlock(&self->mutex);
+	mutex_free(&self->mutex);
 	free(self);
-	putsdo("\tdone\n");
 }
 
 

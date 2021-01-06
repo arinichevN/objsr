@@ -285,15 +285,22 @@ extern int mutex_init(Mutex *m);
 
 extern void mutex_free(Mutex *m);
 
-extern int mutex_lock(Mutex *item);
-
 extern int mutex_tryLock(Mutex *item);
 
-extern int mutex_unlock(Mutex *item);
+//extern int mutex_lock(Mutex *item);
+
+//extern int mutex_unlock(Mutex *item);
+
+#define mutex_lock(M) {if (pthread_mutex_lock ( &(M)->self ) != 0 ) putsde("mutex_lock failed\n");}
+#define mutex_unlock(M) {if (pthread_mutex_unlock(&(M)->self) != 0) putsde("mutex_unlock failed\n");}
 
 extern void skipLine(FILE* stream);
 
 extern int thread_create(Thread *new_thread, void *(*thread_routine) (void *), void * data);
+
+extern void thread_cancelEnable();
+
+extern void thread_cancelDisable();
 
 extern int threadCancelDisable(int *old_state) ;
 

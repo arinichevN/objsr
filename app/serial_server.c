@@ -2,7 +2,7 @@
 
 #include "serial_server_config.c"
 
-ACPLS *serial_server = NULL;
+ACPSS *serial_server = NULL;
 
 int getSerial_callback(void *data, int argc, char **argv, char **azColName){
 	char name[LINE_SIZE + 1];
@@ -35,7 +35,7 @@ int getSerial_callback(void *data, int argc, char **argv, char **azColName){
 	printdo("FROM DB: %s %s\n", name, SS_DEVICE_DIR);
 	char filename[fn] ;
 	snprintf(filename, fn, "%s/%s", SS_DEVICE_DIR, name) ;
-	if (!acpls_createNewController(serial_server, filename, rate, config, acnodes, ACPL_CNODE_COUNT)) {
+	if (!acpss_createNewPort(serial_server, filename, rate, config, acnodes, ACPL_CNODE_COUNT)) {
 		printde("failed to initialize serial:%s at rate %d\n", filename, rate);
 		return EXIT_FAILURE;
 	}
@@ -44,7 +44,7 @@ int getSerial_callback(void *data, int argc, char **argv, char **azColName){
 }
 
 int serialServer_begin(const char *db_path){
-	serial_server = acpls_new();
+	serial_server = acpss_new();
 	if(serial_server == NULL){
 		return 0;
 	}
@@ -64,6 +64,6 @@ int serialServer_begin(const char *db_path){
 }
 
 extern void serialServer_free(){
-	acpls_free(serial_server);
+	acpss_free(serial_server);
 	serial_server = NULL;
 }
