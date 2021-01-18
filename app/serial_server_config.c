@@ -344,7 +344,6 @@ int acnf_appReset(char *buf){
 	return ACP_DONE;
 }
 
-
 ACPSSCommandNode acnodes[] = {
 	
 	{CMD_GETR_CHANNEL_FTS,						acnf_getFTS},

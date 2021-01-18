@@ -57,7 +57,7 @@ function build_lib {
 	cd ../ && \
 	for d in "${da[@]}"
 	do
-		ar -crvs libpac.a lib/${d}.o 
+		ar -cqvs libpac.a lib/${d}.o 
 	done
 }
 
@@ -70,7 +70,7 @@ function build_acp {
 	cd ../TCP && \
 	gcc $1 $3 -c ACPTCP.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
 	cd ../../../ && \
-	ar -crvs libpac.a lib/ACP/ACP.o lib/ACP/serial/ACPSerial.o lib/ACP/serial/ACPSerialPortParam.o lib/ACP/TCP/ACPTCP.o
+	ar -cqvs libpac.a lib/ACP/ACP.o lib/ACP/serial/ACPSerial.o lib/ACP/serial/ACPSerialPortParam.o lib/ACP/TCP/ACPTCP.o
 }
 
 function build_acp_serial_server {
@@ -83,7 +83,7 @@ function build_acp_serial_server {
 	cd ../../../../ && \
 	for d in "${da[@]}"
 	do
-		ar -crvs libpac.a lib/ACP/serial/server/${d}.o 
+		ar -cqvs libpac.a lib/ACP/serial/server/${d}.o 
 	done
 }
 
@@ -91,7 +91,7 @@ function build_sqlite {
 	if [ ! -f sqlite3.o ]; then
 	gcc $1 $3 -DSQLITE_THREADSAFE=2 -DSQLITE_OMIT_LOAD_EXTENSION  -c sqlite3.c -D_REENTRANT $DEBUG_PARAM -lpthread
 	fi
-	ar -crvs libpac.a sqlite3.o
+	ar -cqvs libpac.a sqlite3.o
 }
 
 function build_model {
@@ -114,7 +114,7 @@ function build_model {
 	gcc $1 $3 -c param.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
 	cd ../  && \
 	cd ../  && \
-	ar -crvs libpac.a model/Channel/main.o model/Channel/main.o model/Channel/llistm.o  model/Channel/param.o model/EM/main.o model/EM/param.o model/Matter/main.o model/Matter/param.o model/Sensor/main.o model/Sensor/param.o 
+	ar -cqvs libpac.a model/Channel/main.o model/Channel/main.o model/Channel/llistm.o  model/Channel/param.o model/EM/main.o model/EM/param.o model/Matter/main.o model/Matter/param.o model/Sensor/main.o model/Sensor/param.o 
 }
 
 
@@ -124,13 +124,14 @@ function build_app {
 	gcc $1 $3 -c channels.c -D_REENTRANT $DEBUG_PARAM -lpthread  && \
 	gcc $1 $3 -c main.c -D_REENTRANT $DEBUG_PARAM -lpthread && \
 	cd ../   && \
-	ar -crvs libpac.a app/channels.o app/serial_server.o app/main.o
+	ar -cqvs libpac.a app/channels.o app/serial_server.o app/main.o
 }
 
 #1				2
 #debug_mode		bin_name
 function build {
 	#find . -maxdepth 16 -name '*.o' -type f -delete
+	rm -f libpac.a
 	build_lib $1 $2 $3 && \
 	build_acp $1 $2 $3 && \
 	build_acp_serial_server $1 $2 $3 && \
